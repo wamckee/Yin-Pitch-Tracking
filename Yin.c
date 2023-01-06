@@ -1,6 +1,6 @@
 #include <stdint.h> /* For standard interger types (int16_t) */
 #include <stdlib.h> /* For call to malloc */
-#include "Yin.h"
+#include "yin.h"
 
 /* ------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------- PRIVATE FUNCTIONS
@@ -21,6 +21,7 @@ void Yin_difference(Yin *yin, int16_t* buffer){
 	/* Calculate the difference for difference shift values (tau) for the half of the samples */
 	for(tau = 0 ; tau < yin->halfBufferSize; tau++){
 
+		yin->yinBuffer[tau] = 0;
 		/* Take the difference of the signal with a shifted version of itself, then square it.
 		 * (This is the Yin algorithm's tweak on autocorellation) */ 
 		for(i = 0; i < yin->halfBufferSize; i++){
@@ -176,10 +177,16 @@ void Yin_init(Yin *yin, int16_t bufferSize, float threshold){
 	/* Allocate the autocorellation buffer and initialise it to zero */
 	yin->yinBuffer = (float *) malloc(sizeof(float)* yin->halfBufferSize);
 
+        {
 	int16_t i;
 	for(i = 0; i < yin->halfBufferSize; i++){
 		yin->yinBuffer[i] = 0;
 	}
+        }
+}
+
+void Yin_free(Yin *yin) {
+	free(yin->yinBuffer);
 }
 
 /**
@@ -188,7 +195,7 @@ void Yin_init(Yin *yin, int16_t bufferSize, float threshold){
  * @param  buffer Buffer of samples to analyse
  * @return        Fundamental frequency of the signal in Hz. Returns -1 if pitch can't be found
  */
-float Yin_getPitch(Yin *yin, int16_t* buffer){
+float Yin_getPitch(Yin *yin, int16_t* buffer, int sampling_rate){
 	int16_t tauEstimate = -1;
 	float pitchInHertz = -1;
 	
@@ -203,7 +210,7 @@ float Yin_getPitch(Yin *yin, int16_t* buffer){
 	
 	/* Step 5: Interpolate the shift value (tau) to improve the pitch estimate. */
 	if(tauEstimate != -1){
-		pitchInHertz = YIN_SAMPLING_RATE / Yin_parabolicInterpolation(yin, tauEstimate);
+		pitchInHertz = sampling_rate / Yin_parabolicInterpolation(yin, tauEstimate);
 	}
 	
 	return pitchInHertz;

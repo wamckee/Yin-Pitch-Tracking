@@ -26,13 +26,15 @@ typedef struct _Yin {
  */
 void Yin_init(Yin *yin, int16_t bufferSize, float threshold);
 
+void Yin_free(Yin *yin);
+
 /**
  * Runs the Yin pitch detection algortihm
  * @param  yin    Initialised Yin object
  * @param  buffer Buffer of samples to analyse
  * @return        Fundamental frequency of the signal in Hz. Returns -1 if pitch can't be found
  */
-float Yin_getPitch(Yin *yin, int16_t* buffer);
+float Yin_getPitch(Yin *yin, int16_t* buffer, int sampling_rate);
 
 /**
  * Certainty of the pitch found 
